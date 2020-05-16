@@ -40,6 +40,12 @@ const serverError = {
   data: {},
 };
 
+const usernameError = {
+  message: "Not Found",
+  validation: ["Username doesn't exist"],
+  data: {},
+};
+
 describe("the auth route", () => {
   describe("/register", () => {
     beforeEach(async (done) => {
@@ -60,7 +66,9 @@ describe("the auth route", () => {
       const res = await request(server).post("/api/register").send(testUser);
       expect(res.statusCode).toBe(201);
       expect(res.type).toBe("application/json");
-      expect(verifyProperties(res.body.data, ["username", "password"])).toBe(true);
+      expect(verifyProperties(res.body.data, ["username", "password"])).toBe(
+        true
+      );
       expect(res.body.data.username).toBe(testUser.username);
       expect(res.body.data.role).toBe(testUser.role);
     });
@@ -108,14 +116,17 @@ describe("the auth route", () => {
 
       try {
         // Register a user so that login can happen
-        const regRes = await request(server).post("/api/register").send(testUser);
+        const regRes = await request(server)
+          .post("/api/register")
+          .send(testUser);
         expect(regRes.statusCode).toBe(201);
+        // Attemp login
         const loginRes = await request(server)
           .post("/api/login")
           .send(testUser);
         expect(loginRes.statusCode).toBe(200);
         expect(loginRes.type).toBe("application/json");
-        expect(loginRes.headers['set-cookie']).toBeDefined(); // token cookie
+        expect(loginRes.headers["set-cookie"]).toBeDefined(); // token cookie
         expect(loginRes.body.data.user.username).toBe(testUser.username);
         expect(loginRes.body.data.user.role).toBe(testUser.role);
         // verify the JWT
@@ -128,6 +139,57 @@ describe("the auth route", () => {
         done();
       } catch (err) {
         console.log(err);
+        done(err);
+      }
+    });
+
+    it("won't attempt to login an invalid username", async (done) => {
+      // Ensure users have been truncated properly
+      let noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(true);
+
+      // Insert a new user into the database
+      try {
+        // Register a user so that login can happen
+        const regRes = await request(server)
+          .post("/api/register")
+          .send(testUser);
+        expect(regRes.statusCode).toBe(201);
+        // Attemp login
+        const loginRes = await request(server)
+          .post("/api/login")
+          .send({ username: "BadUsername", password: hash });
+        expect(loginRes.statusCode).toBe(404);
+        expect(loginRes.type).toBe("application/json");
+        expect(loginRes.body).toEqual(usernameError);
+        done();
+      } catch (err) {
+        console.log(err);
+        done(err);
+      }
+    });
+
+    it("will throw an error if sent invalid login credentials", async (done) => {
+      // Ensure users have been truncated properly
+      let noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(true);
+
+      // Insert a new user into the database
+      try {
+        // Register a user so that login can happen
+        const regRes = await request(server)
+          .post("/api/register")
+          .send(testUser);
+        expect(regRes.statusCode).toBe(201);
+        // Attemp login
+        const loginRes = await request(server)
+          .post("/api/login")
+          .send({ username: "BadUsername", password: hash });
+        expect(loginRes.statusCode).toBe(404);
+        expect(loginRes.type).toBe("application/json");
+        expect(loginRes.body).toEqual(usernameError);
+        done();
+      } catch (err) {
         done(err);
       }
     });
