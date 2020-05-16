@@ -10,7 +10,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
         const path = token ? (
           <Component {...props} />
         ) : (
-          <Redirect to="/login" />
+          <Redirect to="/signin" />
         );
         return path;
       }}
