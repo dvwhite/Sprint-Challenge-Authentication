@@ -9,7 +9,7 @@ const Card = styled.form`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: #88CCFF;
+  background-color: whitesmoke;
   background-position: center;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -33,7 +33,7 @@ const Card = styled.form`
 const JokeCard = ({ data }) => {
   return (
     <Card>
-      <h2>{data.joke}</h2>
+      <h2>"{data.joke}"</h2>
     </Card>
   );
 }
