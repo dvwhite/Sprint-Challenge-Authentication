@@ -27,6 +27,51 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.post("/login", validateUsername, async (req, res) => {
+  const authError = {
+    message: "Invalid Credentials",
+    validation: [],
+    data: {},
+  };
+
+  try {
+    // Retrieve the user from the dbase
+    const { username, password } = req.body;
+    const user = await findBy({ username });
+
+    if (!user) {
+      return res.status(401).json(authError);
+    }
+
+    // Auth in
+    const authenticated = bcrypt.compareSync(password, user.password);
+    if (!authenticated) {
+      res.status(401).json(authError);
+    }
+    delete user.password; // This is no longer needed
+    
+    // Create the JWT token
+    const payload = {
+      id: user.id,
+      username: user.username
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '120m' });
+    res.cookie("token", token);
+
+    // Send the data back, including the token
+    res.status(200).json({
+      message: `Welcome, ${user.username}!`,
+      validation: [],
+      data: {
+        user,
+        token
+      }
+    });
+  } catch (err) {
+    errDetail(res, err);
+  }
+});
+
 /**
  * @function validateUsername: Validate the the id exists before submitting req
  * @param {*} req: The request object sent to the API
