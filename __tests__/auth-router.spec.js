@@ -53,3 +53,29 @@ describe("the auth route", () => {
       expect(res.body.data.username).toBe(testUser.username);
       expect(res.body.data.role).toBe(testUser.role);
     });
+
+    it("doesn't insert an existing user into the database", async (done) => {
+      // Ensure users have been truncated properly
+      let noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(true);
+      // Test the endpoint by registering a user
+      const res = await request(server).post("/api/register").send(testUser);
+      noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(false);
+      try {
+        // Register a second user without truncating the dbase
+        const res = await request(server).post("/api/register").send(testUser);
+        // It should throw an error
+        expect(res.statusCode).toBe(500);
+        expect(res.type).toBe("application/json");
+        expect(JSON.parse(res.text)).toEqual(serverError);
+        // There should still only be 1 user in the dbase
+        const users = await find();
+        expect(users).toHaveLength(1);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+  });
+});
