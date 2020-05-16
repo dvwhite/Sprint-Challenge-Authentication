@@ -9,11 +9,31 @@ export const axiosWithAuth = () => {
   });
 }
 
-export const login = credentials => {
-  axios.post('http://localhost:5000/api/login', credentials)
+/**
+ * @function: Sends a post to log you in and obtain an authentication token for the endpoint
+ * @param {*} credentials: The credentials used to authenticate
+ * @returns {Promise} promise: The API promise to be resolved in useEffect or componentDidMount
+ */
+export const login = (credentials, history) => {
+  return axios.post("http://localhost:5000/api/login", credentials)
     .then(res => {
-      console.log(res)
-      const token = res.data.data.token;
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", res.data.data.token);
+      history.push('/jokes');
+      return res;
     })
-}
+    .catch(err => console.log("Error in actions>login:", err.response));
+};
+
+/**
+ * @function: Sends a post to log you in and obtain an authentication token for the endpoint
+ * @param {*} credentials: The credentials used to authenticate
+ * @returns {Promise} promise: The API promise to be resolved in useEffect or componentDidMount
+ */
+export const register = (user, history) => {
+  return axios.post("http://localhost:5000/api/register", user)
+    .then(res => {
+      history.push('/signin');
+      return res;
+    })
+    .catch(err => console.log("Error in actions>register:", err.response));
+};
