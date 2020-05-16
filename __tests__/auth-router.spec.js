@@ -29,4 +29,27 @@ const serverError = {
   data: {},
 };
 
+describe("the auth route", () => {
+  describe("/register", () => {
+    beforeEach(async (done) => {
+      try {
+        await db("users").truncate();
+        done();
+      } catch (err) {
+        console.log("Unable to truncate the database", err);
+        done(err);
+      }
+    });
 
+    it("inserts a new user into the db", async () => {
+      // Ensure users have been truncated properly
+      const noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(true);
+      // Test the endpoint
+      const res = await request(server).post("/api/register").send(testUser);
+      expect(res.statusCode).toBe(201);
+      expect(res.type).toBe("application/json");
+      expect(verifyProperties(res.body.data, ["username", "role"])).toBe(true);
+      expect(res.body.data.username).toBe(testUser.username);
+      expect(res.body.data.role).toBe(testUser.role);
+    });
