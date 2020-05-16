@@ -15,8 +15,7 @@ function restrict() {
   
   return async (req, res, next) => {
     try {
-      console.log("token:", token)
-      const { token } = req.authorization;
+      const { token } = req.cookies;
       if (!token) {
         return res.status(401).json(authError);
       }
