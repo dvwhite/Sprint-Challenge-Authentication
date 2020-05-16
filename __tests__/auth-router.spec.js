@@ -15,6 +15,7 @@ const dbHasNoUsers = async () => {
     return false;
   }
 };
+
 const verifyProperties = (obj, props) => {
   // Verifies that the object has the required properties
   objKeys = Object.keys(obj);
@@ -22,7 +23,7 @@ const verifyProperties = (obj, props) => {
 };
 
 // Db helpers
-const { find } = require("../routes/users/users-model");
+const { find } = require("../users/users-model");
 
 // Test user credentials
 const defaultPW = "123456";
@@ -59,7 +60,7 @@ describe("the auth route", () => {
       const res = await request(server).post("/api/register").send(testUser);
       expect(res.statusCode).toBe(201);
       expect(res.type).toBe("application/json");
-      expect(verifyProperties(res.body.data, ["username", "role"])).toBe(true);
+      expect(verifyProperties(res.body.data, ["username", "password"])).toBe(true);
       expect(res.body.data.username).toBe(testUser.username);
       expect(res.body.data.role).toBe(testUser.role);
     });
