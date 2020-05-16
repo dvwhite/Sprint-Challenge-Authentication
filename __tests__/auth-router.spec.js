@@ -89,4 +89,57 @@ describe("the auth route", () => {
       }
     });
   });
+
+  describe("the /login route", () => {
+    beforeEach(async (done) => {
+      try {
+        await db("users").truncate();
+        done();
+      } catch (err) {
+        console.log("Unable to truncate the database", err);
+        done(err);
+      }
+    });
+
+    it("it authenticates a correct username and password", async (done) => {
+      // Ensure users have been truncated properly
+      let noUsers = await dbHasNoUsers();
+      expect(noUsers).toBe(true);
+
+      try {
+        // Register a user so that login can happen
+        const regRes = await request(server).post("/api/register").send(testUser);
+        expect(regRes.statusCode).toBe(201);
+        const loginRes = await request(server)
+          .post("/api/login")
+          .send(testUser);
+        expect(loginRes.statusCode).toBe(200);
+        expect(loginRes.type).toBe("application/json");
+        expect(loginRes.headers['set-cookie']).toBeDefined(); // token cookie
+        expect(loginRes.body.data.user.username).toBe(testUser.username);
+        expect(loginRes.body.data.user.role).toBe(testUser.role);
+        // verify the JWT
+        const token = loginRes.body.data.token;
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+          expect(err).toBeNull();
+          expect(decoded.role).toBe(testUser.role);
+          expect(decoded.department).toBe(testUser.department);
+        });
+        done();
+      } catch (err) {
+        console.log(err);
+        done(err);
+      }
+    });
+  });
+
+  afterAll(async (done) => {
+    try {
+      await db.destroy();
+      done();
+    } catch (err) {
+      console.log("Unable to close the database connection", err);
+      done(err);
+    }
+  });
 });
