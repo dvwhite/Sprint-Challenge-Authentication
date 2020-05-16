@@ -133,8 +133,7 @@ describe("the auth route", () => {
         const token = loginRes.body.data.token;
         jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
           expect(err).toBeNull();
-          expect(decoded.role).toBe(testUser.role);
-          expect(decoded.department).toBe(testUser.department);
+          expect(decoded.username).toBe(testUser.username);
         });
         done();
       } catch (err) {
