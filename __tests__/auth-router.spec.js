@@ -5,6 +5,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Helpers
+const dbHasNoUsers = async () => {
+  // Verifies that the database has noUsers
+  try {
+    const users = await find();
+    return users && users.length ? false : true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
 const verifyProperties = (obj, props) => {
   // Verifies that the object has the required properties
   objKeys = Object.keys(obj);
